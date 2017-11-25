@@ -29,7 +29,7 @@ public class Goods {
     private double price;
 
     /**数据库中使用字段名称是original_price， 代码中使用originalPrice*/
-    @Column(column = "original_price")
+    @Column("original_price")
     private double originalPrice ;
 
     public int getId() {

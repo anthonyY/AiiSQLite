@@ -7,7 +7,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,37 +20,13 @@ public class AiiJson implements JsonInterface {
 
     @Override
     public String toJsonString(Object t) {
-        try {
-            Class clazz = Class.forName("com.aiitec.openapi.json.JSON");
-            if (clazz != null) {
-                Method method = clazz.getMethod("toJsonString", Object.class);
-                if (method != null) {
-                    String jsonString = (String) method.invoke(null, t);
-                    return jsonString;
-                }
-            }
-        } catch (Exception e) {
-//            e.printStackTrace();
-        }
         return defaultToString(t);
     }
 
     @Override
     public <T> List<T> parseArray(String json, Class<T> entityClazz) {
         try {
-            Class clazz = Class.forName("com.aiitec.openapi.json.JSON");
-            if (clazz != null) {
-                Method method = clazz.getMethod("parseArray", String.class, Class.class);
-                if (method != null) {
-                    List<T> object = (List<T>) method.invoke(null, json, entityClazz);
-                    return object;
-                }
-            }
-        } catch (Exception e) {
-//            e.printStackTrace();
-        }
-        try {
-            List<T> data = new ArrayList();
+            List<T> data = new ArrayList<T>();
             JSONArray array = new JSONArray(json);
             for (int i = 0; i < array.length(); i++) {
                 if (CombinationUtil.isCommonField(entityClazz)) {
@@ -73,17 +48,6 @@ public class AiiJson implements JsonInterface {
 
     @Override
     public <T> T parseObject(String json, Class<T> clazz) {
-        try {
-            Class jsonClazz = Class.forName("com.aiitec.openapi.json.JSON");
-            if (clazz != null) {
-                Method method = jsonClazz.getMethod("parseObject", String.class, Class.class);
-                if (method != null) {
-                    return (T) method.invoke(null, json, clazz);
-                }
-            }
-        } catch (Exception e) {
-//            e.printStackTrace();
-        }
         JSONObject jsonObject = null;
         try {
             jsonObject = new JSONObject(json);
@@ -94,7 +58,9 @@ public class AiiJson implements JsonInterface {
     }
 
     private <T> T defaultParseObject(JSONObject jsonObject, Class<T> clazz) {
-        if (jsonObject == null) return null;
+        if (jsonObject == null) {
+            return null;
+        }
         try {
             T t = clazz.newInstance();
             if (t != null) {

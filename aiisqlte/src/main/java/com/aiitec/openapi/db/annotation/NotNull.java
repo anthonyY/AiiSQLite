@@ -21,9 +21,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Author: wyouflf
- * Date: 13-8-20
- * Time: 上午9:42
+ * @author: Anthony
+ * 非空注解
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

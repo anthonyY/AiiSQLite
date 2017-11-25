@@ -16,6 +16,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * 数据库工具类
+ * @author  Anthony
+ *
+ */
 public class DbUtils {
 
     public static String getTableName(Class<?> clazz) {
@@ -26,8 +31,13 @@ public class DbUtils {
             tableName = clazz.getName().substring(index + 1,
                     clazz.getName().length());
         }
-        if (annotation != null && !TextUtils.isEmpty(annotation.name())) {
-            tableName = annotation.name();
+        if (annotation != null) {
+            if(!TextUtils.isEmpty(annotation.value())){
+                tableName = annotation.value();
+            }
+            else if(!TextUtils.isEmpty(annotation.name())){
+                tableName = annotation.name();
+            }
         }
         return tableName;
     }
@@ -73,8 +83,13 @@ public class DbUtils {
 
             Column column = fields.get(i).getAnnotation(Column.class);
             String columnName = fields.get(i).getName();
-            if (column != null && !TextUtils.isEmpty(column.column())) {
-                columnName = column.column();
+            if (column != null ) {
+                if(!TextUtils.isEmpty(column.value())){
+                    columnName = column.value();
+                }
+                else if(!TextUtils.isEmpty(column.column())){
+                    columnName = column.column();
+                }
             }
 
             if (checkColumnExists(db, tableName, columnName)) {
@@ -166,6 +181,16 @@ public class DbUtils {
 	    }
 	    return date;
 	}
+	public static Date timeStamp2Date(String timeStamp, String formatStr){
+	    SimpleDateFormat format = new SimpleDateFormat( formatStr, Locale.getDefault());
+	    Date date = null;
+	    try {
+	        date = format.parse(timeStamp);
+	    } catch (ParseException e) {
+	        e.printStackTrace();
+	    }
+	    return date;
+	}
 	/**
 	 * Date 转化为时间戳  yyyy-MM-dd HH:mm:ss  格式  就这点东西不想新建一个类
 	 * @param date 时间
@@ -177,5 +202,12 @@ public class DbUtils {
 	    timestamp = format.format(date);
 	    return timestamp;
 	}
-	
+
+	public static String date2TimeStamp(Date date, String formatStr){
+	    SimpleDateFormat format = new SimpleDateFormat( formatStr, Locale.getDefault() );
+	    String timestamp = null;
+	    timestamp = format.format(date);
+	    return timestamp;
+	}
+
 }

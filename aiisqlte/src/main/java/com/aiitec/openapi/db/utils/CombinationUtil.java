@@ -8,7 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
+/**
+ * 工具类
+ * @author Anthony
+ */
 public class CombinationUtil {
 
 	private static HashMap<Field, Class<?>> childClasses = new HashMap<Field, Class<?>>();

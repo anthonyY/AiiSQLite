@@ -37,13 +37,13 @@ def siteUrl = 'https://github.com/anthonyY/AiiSQLite'
 //项目的git地址
 def gitUrl = 'https://github.com/anthonyY/AiiSQLite.git'
 //发布到JCenter上的项目名字
-def libName = "AiiSQLite"
+def libName = "AiiSqlite"
 
 //发布到组织名称名字，必须填写
 group = "com.aiitec.aiisqlite"
 // 版本号，下次更新是只需要更改版本号即可
-version = "1.0.0"
-//上面配置后上传至JCenter后的编译路径是这样的： compile 'com.aiitec.aiisqlite:library:1.0.0'
+version = "1.0.1"
+//上面配置后上传至JCenter后的编译路径是这样的： compile 'com.aiitec.aiisqlite:aiisqlite:1.0.1'
 
 //生成源文件
 task sourcesJar(type: Jar) {
@@ -120,7 +120,7 @@ bintray {
     configurations = ['archives']
     pkg {
         //这里的repo值必须要和你创建Maven仓库的时候的名字一样
-        repo = "maven"
+        repo = "AiiSqlite"
         //发布到JCenter上的项目名字
         name = libName
         //项目描述

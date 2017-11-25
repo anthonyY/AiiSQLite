@@ -7,23 +7,31 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
 
 import com.aiitec.openapi.db.annotation.Column;
+import com.aiitec.openapi.db.annotation.Format;
 import com.aiitec.openapi.db.annotation.NotNull;
 import com.aiitec.openapi.db.annotation.Unique;
 import com.aiitec.openapi.db.utils.CombinationUtil;
 import com.aiitec.openapi.db.utils.DbUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author  Anthony
+ * 数据库helper类
+ *
+ */
 public class AIIDbOpenHelper extends SQLiteOpenHelper {
 
     private static final int dbVersion = 1;
     private static HashMap<String, AIIDbOpenHelper> instances = new HashMap<>();
-    private static String currontDbName = "currentDbName.db";//默认数据库名,
+    /**默认数据库名*/
+    private static String currontDbName = "currentDbName.db";
     private Context context;
     private AIIDbOpenHelper(Context context) {
         super(context, currontDbName, null, dbVersion);
@@ -73,21 +81,29 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     }
 
     public void closeAllDB() {
-        if (instances.size() == 0) return;
+        if (instances.size() == 0) {
+            return;
+        }
         for (Map.Entry<String, AIIDbOpenHelper> entry : instances.entrySet()) {
             closeDatabace(entry.getValue());
         }
         instances.clear();
     }
     public void closeDB(long userId) {
-        if (instances.size() == 0) return;
+        if (instances.size() == 0) {
+            return;
+        }
         String dbName = context.getPackageName()+"_"+userId+".db";
         closeDB(dbName);
     }
     public void closeDB(String dbName) {
-        if (instances.size() == 0) return;
+        if (instances.size() == 0) {
+            return;
+        }
         AIIDbOpenHelper helper = instances.get(dbName);
-        if(helper == null) return;
+        if(helper == null) {
+            return;
+        }
         closeDatabace(helper);
         instances.remove(dbName);
     }
@@ -110,28 +126,29 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
             DbUtils.updateTable(db, clazz);
             return;
         }
-
-        // else if(state == TableStatus.IS_CHANGE){
-        // //表示表有改动， 暂时懒得考虑那么多，
-        // db.execSQL("DROP TABLE "+tableName);
-        // }
-        //
-        // Field[] fields = clazz.getDeclaredFields();
         List<Field> fields = CombinationUtil.getAllFields(clazz);
         String tableName = DbUtils.getTableName(clazz);
 
         StringBuffer sb = new StringBuffer();
         sb.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append("(");
-        sb.append("_id integer primary key autoincrement,");// 让这个字段自动累加，而不影响其他主键
+        // 让这个字段自动累加，而不影响其他主键
+        sb.append("_id integer primary key autoincrement,");
+
         for (int i = 0; i < fields.size(); i++) {
-            if (fields.get(i).getName().equals("this$0")) {// 内部类会出现这个字段，所以我们设计不要有内部类
+            // 内部类会出现这个字段，所以我们设计不要有内部类
+            if (fields.get(i).getName().equals("this$0")) {
                 continue;
             }
 
             Column column = fields.get(i).getAnnotation(Column.class);
             String columnName = fields.get(i).getName();
-            if (column != null && !TextUtils.isEmpty(column.column())) {
-                columnName = column.column();
+            if (column != null ) {
+                if(!TextUtils.isEmpty(column.value())){
+                    columnName = column.value();
+                }
+                else if(!TextUtils.isEmpty(column.column())){
+                    columnName = column.column();
+                }
             }
             Unique unique = fields.get(i).getAnnotation(Unique.class);
             NotNull notNull = fields.get(i).getAnnotation(NotNull.class);
@@ -139,10 +156,6 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
             sb.append(" " + columnName);
             if (fields.get(i).getType().equals(int.class)
                     || fields.get(i).getType().equals(long.class)) {
-                // if(fields.get(i).getName().equals("id")||fields.get(i).getName().equals("_id")){
-                // sb.append(" NUMRIC PRIMARY KEY,");
-                // } else {
-                // }
                 sb.append(" NUMRIC ");
             } else if (fields.get(i).getType().equals(float.class)
                     || fields.get(i).getType().equals(double.class)) {
@@ -175,7 +188,6 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
         String table = DbUtils.getTableName(t.getClass());
 
         List<Field> fields = CombinationUtil.getAllFields(t.getClass());
-        // Field[] fields = t.getClass().getDeclaredFields();
 
         ContentValues values = new ContentValues();
         for (int i = 0; i < fields.size(); i++) {
@@ -186,20 +198,17 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
 
             Column column = fields.get(i).getAnnotation(Column.class);
             
-            // String defaultValue = null;
-            if (column != null && !TextUtils.isEmpty(column.column())) {
-                columnName = column.column();
-                // defaultValue = column.defaultValue();
+            if (column != null) {
+                if(!TextUtils.isEmpty(column.value())){
+                    columnName = column.value();
+                }
+                else if(!TextUtils.isEmpty(column.column())){
+                    columnName = column.column();
+                }
             }
 
             Object o = null;
             try {
-                // 两种方式都可以，
-                // 方式一 不用暴力，和平解决战争，但是如果get 与 set方法写错就获取不了，比如布尔类型的应isXXX,
-                // 实体类里也需要加get set方法
-                // o =
-                // t.getClass().getMethod(PacketUtil.getMethodName(fields.get(i).getName())).invoke(t);
-                // 方式二 暴力反射，准确，不用考虑太多，但是感觉很野蛮
                 fields.get(i).setAccessible(true);
                 o = fields.get(i).get(t);
             } catch (Exception e) {
@@ -214,13 +223,22 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
                     values.put(columnName, (Long) o);
                 } else if (fields.get(i).getType().equals(float.class)) {
                     values.put(columnName, (Float) o);
-
                 } else if (fields.get(i).getType().equals(double.class)) {
                     values.put(columnName, (Double) o);
                 } else if (fields.get(i).getType().equals(char.class)
                         || fields.get(i).getType().equals(String.class)) {
                     values.put(columnName, o.toString());
-                } else if (fields.get(i).getType().equals(List.class)
+                } else if (fields.get(i).getType().equals(Boolean.class)
+                        || fields.get(i).getType().equals(boolean.class)) {
+                    boolean booleanValue = (boolean) o;
+                    if(booleanValue){
+                        values.put(columnName, 1);
+                    } else {
+                        values.put(columnName, 0);
+                    }
+
+                }
+                else if (fields.get(i).getType().equals(List.class)
                         || fields.get(i).getType().equals(ArrayList.class)) {
 
                     try {
@@ -229,8 +247,17 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
                         e.printStackTrace();
                     }
                 } else if (fields.get(i).getType().equals(Date.class)) {
-                    String time = DbUtils.date2TimeStamp((Date) o);
-                    values.put(columnName, time);
+                    Format format = fields.get(i).getAnnotation(Format.class);
+
+                    if(format != null && !TextUtils.isEmpty(format.value())){
+                        String formatStr = format.value();
+                        String time = DbUtils.date2TimeStamp((Date) o, formatStr);
+                        values.put(columnName, time);
+                    } else {
+                        String time = DbUtils.date2TimeStamp((Date) o);
+                        values.put(columnName, time);
+                    }
+
                 } else {
                     try {
                         values.put(columnName, AIIDBManager.jsonInterface.toJsonString(o));
@@ -241,7 +268,6 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
             }
 
         }
-        // db.insert(table, null, values);
         db.replace(table, null, values);
 
     }
@@ -250,8 +276,8 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     	String table = DbUtils.getTableName(t.getClass());
     	
     	List<Field> fields = CombinationUtil.getAllFields(t.getClass());
-    	// Field[] fields = t.getClass().getDeclaredFields();
-    	List<Field> uniqueField = new ArrayList<Field>();//保持数据库唯一性的字段，可能是多个
+        //保持数据库唯一性的字段，可能是多个
+    	List<Field> uniqueField = new ArrayList<Field>();
     	ContentValues values = new ContentValues();
     	for (int i = 0; i < fields.size(); i++) {
     		if (fields.get(i).getName().equals("this$0")) {
@@ -260,12 +286,19 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     		
     		//如果字段是唯一的，就加入唯一字段的List
     		Unique unique = fields.get(i).getAnnotation(Unique.class);
-    		if(unique != null) uniqueField.add(fields.get(i));
+    		if(unique != null) {
+                uniqueField.add(fields.get(i));
+            }
     		
     		Column column = fields.get(i).getAnnotation(Column.class);
     		String columnName = fields.get(i).getName();
-    		if (column != null && !TextUtils.isEmpty(column.column())) {
-    			columnName = column.column();
+    		if (column != null) {
+                if(!TextUtils.isEmpty(column.value())){
+                    columnName = column.value();
+                }
+                else if(!TextUtils.isEmpty(column.column())){
+                    columnName = column.column();
+                }
     		}
     		
     		Object o = null;
@@ -276,40 +309,42 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     			e.printStackTrace();
     		}
     		if (o != null ) {
-    			
-    			if (fields.get(i).getType().equals(int.class)) {
-    				if((Integer) o != -1){//保存可以不用考虑这些东西，但是更新就要防止空和-1
+
+    		    Class clazz = fields.get(i).getType();
+    			if (clazz.equals(int.class)) {
+                    //保存可以不用考虑这些东西，但是更新就要防止空和-1
+    				if((Integer) o != -1){
     					values.put(columnName, (Integer) o);
     				}
-    			} else if (fields.get(i).getType().equals(long.class)) {
+    			} else if (clazz.equals(long.class)) {
     				if((Long) o != -1){
     					values.put(columnName, (Long) o);
     				}
-    			} else if (fields.get(i).getType().equals(float.class)) {
+    			} else if (clazz.equals(float.class)) {
     				if((Float) o != -1){
     					values.put(columnName, (Float) o);
     				}
-    			} else if (fields.get(i).getType().equals(double.class)) {
+    			} else if (clazz.equals(double.class)) {
     				if((Double) o != -1){
     					values.put(columnName, (Double) o);
     				}
-    			} else if (fields.get(i).getType().equals(char.class)
-    					|| fields.get(i).getType().equals(String.class)) {
+    			} else if (clazz.equals(char.class)
+    					|| clazz.equals(String.class)) {
     				values.put(columnName, o.toString());
-    			} else if (fields.get(i).getType().equals(List.class)
-    					|| fields.get(i).getType().equals(ArrayList.class)) {
+    			} else if (clazz.equals(List.class)
+    					|| clazz.equals(ArrayList.class)) {
     				
     				try {
     					values.put(columnName, AIIDBManager.jsonInterface.toJsonString(o));
     				} catch (Exception e) {
     					e.printStackTrace();
     				}
-    			} else if (fields.get(i).getType().equals(Date.class)) {
+    			} else if (clazz.equals(Date.class)) {
     				String time = DbUtils.date2TimeStamp((Date) o);
     				values.put(columnName, time);
-    			} else {
-    				try {
-    					values.put(columnName, AIIDBManager.jsonInterface.toJsonString(o));
+    			} else if(!Modifier.isAbstract(clazz.getModifiers())) {
+                    try {
+                        values.put(columnName, AIIDBManager.jsonInterface.toJsonString(o));
     				} catch (Exception e) {
     					e.printStackTrace();
     				}
@@ -324,7 +359,8 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     		StringBuilder sb = new StringBuilder();
     		whereArgs = new String[uniqueField.size()];
     		for (Field field: uniqueField) {
-    			if(sb.toString().trim().length() > 0){//如果已经有字段了，就加 AND
+                //如果已经有字段了，就加 AND
+    			if(sb.toString().trim().length() > 0){
     				sb.append(" AND ");
     			}
     			Column column = field.getAnnotation(Column.class);

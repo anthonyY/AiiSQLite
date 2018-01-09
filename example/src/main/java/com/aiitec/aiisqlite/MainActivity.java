@@ -1,16 +1,23 @@
 package com.aiitec.aiisqlite;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.aiitec.openapi.db.AIIDBManager;
+import com.aiitec.openapi.db.utils.DbUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,11 +52,10 @@ public class MainActivity extends AppCompatActivity {
     private AIIDBManager aiiDbManager;
     private Button btnSave, btnRead;
     private EditText etTitle;
-    private ArrayAdapter<Video> adapter;
+    private MyAdapter adapter;
     private ListView listView;
     ExecutorService cachedThreadPool;
     private AIIDBManager aiiDBManager;
-    private ArrayList<Video> datas = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,8 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 readDatas();
             }
         });
-        adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, datas);
-//        adapter = MyAdapter(this, datas);
+        adapter = new MyAdapter(this);
         listView.setAdapter(adapter);
         aiiDBManager = new AIIDBManager(this);
         cachedThreadPool = Executors.newCachedThreadPool();
@@ -140,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
         cachedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i < 1000; i++) {
+                for (int i = 0; i < 100; i++) {
                     Video video = new Video();
                     video.courseId = i / 10 + 1;
                     video.play_path = "http://www.text.com/path$i.mp4";
@@ -150,6 +155,8 @@ public class MainActivity extends AppCompatActivity {
                     video.audio_synopsis = "啦啦啦"+i;
                     video.audio_type = i % 3;
                     video.imagePath = "http://www.text.com/image"+i+".jpg";
+                    video.time = System.currentTimeMillis();
+                    video.timestamp = DbUtils.date2TimeStamp(new Date());
                     aiiDBManager.save(video);
                 }
             }
@@ -158,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         cachedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                for (int i = 1000; i < 2000; i++) {
+                for (int i = 100; i < 200; i++) {
                     Video video = new Video();
                     video.courseId = i / 10 + 1;
                     video.play_path = "http://www.text.com/path$i.mp4";
@@ -168,6 +175,8 @@ public class MainActivity extends AppCompatActivity {
                     video.audio_synopsis = "啦啦啦"+i;
                     video.audio_type = i % 3;
                     video.imagePath = "http://www.text.com/image"+i+".jpg";
+                    video.time = System.currentTimeMillis();
+                    video.timestamp = DbUtils.date2TimeStamp(new Date());
                     aiiDBManager.save(video);
                 }
             }
@@ -175,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         cachedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                for (int i = 2000; i < 3000; i++) {
+                for (int i = 200; i < 300; i++) {
                     Video video = new Video();
                     video.courseId = i / 10 + 1;
                     video.play_path = "http://www.text.com/path$i.mp4";
@@ -185,6 +194,8 @@ public class MainActivity extends AppCompatActivity {
                     video.audio_synopsis = "啦啦啦"+i;
                     video.audio_type = i % 3;
                     video.imagePath = "http://www.text.com/image"+i+".jpg";
+                    video.time = System.currentTimeMillis();
+                    video.timestamp = DbUtils.date2TimeStamp(new Date());
                     aiiDBManager.save(video);
                 }
             }
@@ -203,9 +214,9 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            datas.clear();
+                            adapter.clear();
                             if (videos != null) {
-                                datas.addAll(videos);
+                                adapter.addAll(videos);
                             }
                             adapter.notifyDataSetChanged();
                         }
@@ -221,16 +232,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-//    class MyAdapter extends ArrayAdapter<Video> {
-//        public MyAdapter(@NonNull Context context) {
-//            super(context, 0);
-//        }
-//
-//        @NonNull
-//        @Override
-//        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-//            View view =
-//            return super.getView(position, convertView, parent);
-//        }
-//    }
+    class MyAdapter extends ArrayAdapter<Video> {
+        public MyAdapter(@NonNull Context context) {
+            super(context, 0);
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            TextView view = (TextView) getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null, false);
+            Video item = getItem(position);
+            view.setText(item.getAudioId()+"  "+item.getTitle()+"  "+item.timestamp);
+            return view;
+        }
+    }
 }

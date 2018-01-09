@@ -23,6 +23,7 @@ public class Video {
     String audio_synopsis;
     String play_path;
     String play_length ;
+    String timestamp ;
     long time = 0;
     int is_auditions = 0;
     int courseId = 0;
@@ -138,5 +139,13 @@ public class Video {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 }

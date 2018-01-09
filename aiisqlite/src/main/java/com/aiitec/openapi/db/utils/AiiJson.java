@@ -1,7 +1,5 @@
 package com.aiitec.openapi.db.utils;
 
-import com.aiitec.openapi.db.JsonInterface;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,15 +14,13 @@ import java.util.List;
  *
  * @author Anthony
  */
-public class AiiJson implements JsonInterface {
+public class AiiJson {
 
-    @Override
-    public String toJsonString(Object t) {
+    public static String toJsonString(Object t) {
         return defaultToString(t);
     }
 
-    @Override
-    public <T> List<T> parseArray(String json, Class<T> entityClazz) {
+    public static <T> List<T> parseArray(String json, Class<T> entityClazz) {
         try {
             List<T> data = new ArrayList<T>();
             JSONArray array = new JSONArray(json);
@@ -46,8 +42,7 @@ public class AiiJson implements JsonInterface {
         return null;
     }
 
-    @Override
-    public <T> T parseObject(String json, Class<T> clazz) {
+    public static <T> T parseObject(String json, Class<T> clazz) {
         JSONObject jsonObject = null;
         try {
             jsonObject = new JSONObject(json);
@@ -57,7 +52,7 @@ public class AiiJson implements JsonInterface {
         return defaultParseObject(jsonObject, clazz);
     }
 
-    private <T> T defaultParseObject(JSONObject jsonObject, Class<T> clazz) {
+    private static <T> T defaultParseObject(JSONObject jsonObject, Class<T> clazz) {
         if (jsonObject == null) {
             return null;
         }
@@ -127,7 +122,7 @@ public class AiiJson implements JsonInterface {
      * @param t 要转Json String 的对象
      * @return String 结果
      */
-    private String defaultToString(Object t) {
+    private static String defaultToString(Object t) {
         if (t.getClass() == String.class || t.getClass().isPrimitive()) {
             return t.toString();
         }

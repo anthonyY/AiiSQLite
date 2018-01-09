@@ -45,6 +45,10 @@ public class CombinationUtil {
             if (field.getName().equals("CREATOR")) {
                 continue;
             }
+            //kotlin 静态的字段
+            if (field.getName().equals("companion")) {
+                continue;
+            }
 
             // 变量名
             String filedName = field.getName();

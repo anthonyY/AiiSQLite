@@ -19,13 +19,14 @@ void dbManager.deleteAll(对象T.class);
 void dbManager.deleteById(id);  
 
 @version 1.0.2 修复多线程访问出现database is closed 的异常
+@version 1.0.3 删除JsonInterface
 ```
 ### 引用方式  
 
 ``` 
 dependencies {
     ...  
-     compile 'com.aiitec.aiisqlite:aiisqlte:1.0.2'
+     compile 'com.aiitec.aiisqlite:aiisqlte:1.0.3'
 }
 ```
 

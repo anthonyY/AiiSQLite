@@ -10,6 +10,7 @@ import com.aiitec.openapi.db.annotation.Column;
 import com.aiitec.openapi.db.annotation.Format;
 import com.aiitec.openapi.db.annotation.NotNull;
 import com.aiitec.openapi.db.annotation.Unique;
+import com.aiitec.openapi.db.utils.AiiJson;
 import com.aiitec.openapi.db.utils.CombinationUtil;
 import com.aiitec.openapi.db.utils.DbUtils;
 
@@ -244,7 +245,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
                         || fields.get(i).getType().equals(ArrayList.class)) {
 
                     try {
-                        values.put(columnName, AIIDBManager.jsonInterface.toJsonString(o));
+                        values.put(columnName, AiiJson.toJsonString(o));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -262,7 +263,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
 
                 } else {
                     try {
-                        values.put(columnName, AIIDBManager.jsonInterface.toJsonString(o));
+                        values.put(columnName, AiiJson.toJsonString(o));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -337,7 +338,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     					|| clazz.equals(ArrayList.class)) {
     				
     				try {
-    					values.put(columnName, AIIDBManager.jsonInterface.toJsonString(o));
+    					values.put(columnName, AiiJson.toJsonString(o));
     				} catch (Exception e) {
     					e.printStackTrace();
     				}
@@ -346,7 +347,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     				values.put(columnName, time);
     			} else if(!Modifier.isAbstract(clazz.getModifiers())) {
                     try {
-                        values.put(columnName, AIIDBManager.jsonInterface.toJsonString(o));
+                        values.put(columnName, AiiJson.toJsonString(o));
     				} catch (Exception e) {
     					e.printStackTrace();
     				}

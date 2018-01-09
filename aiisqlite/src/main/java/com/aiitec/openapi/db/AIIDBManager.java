@@ -43,31 +43,19 @@ import java.util.List;
 public class AIIDBManager {
 
     private final String TAG = "TAG_AII_SQLITE";
-    protected static JsonInterface jsonInterface;
-
-    public static void setJsonInterface(JsonInterface jsonInterface) {
-        AIIDBManager.jsonInterface = jsonInterface;
-    }
-
-    public static JsonInterface getJsonInterface() {
-        return jsonInterface;
-    }
 
     private AIIDbOpenHelper dbHelper;
 
     public AIIDBManager(Context context) {
         dbHelper = AIIDbOpenHelper.getInstance(context);
-        setJsonInterface(new AiiJson());
     }
 
     public AIIDBManager(Context context, long userId) {
         dbHelper = AIIDbOpenHelper.getInstance(context, userId);
-        setJsonInterface(new AiiJson());
     }
 
     public AIIDBManager(Context context, String dbName) {
         dbHelper = AIIDbOpenHelper.getInstance(context, dbName);
-        setJsonInterface(new AiiJson());
     }
 
 
@@ -179,6 +167,13 @@ public class AIIDBManager {
         return list;
     }
 
+    /**
+     * 查找一条数据
+     * @param clazz 类
+     * @return 返回对象
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public <T> T findFirst(Class<T> clazz) throws InstantiationException, IllegalAccessException {
         return findFirst(clazz, null, null, null);
     }
@@ -195,6 +190,19 @@ public class AIIDBManager {
         return findFirst(clazz, null, "id=?", new String[]{id + ""}, null, null, null);
     }
 
+    /**
+     * 查询一条数据
+     * @param clazz 类
+     * @param columns 查询的字段，如果要查全部传null
+     * @param selection 条件
+     * @param selectionArgs 条件的参数
+     * @param groupBy 组
+     * @param having 这个值我也不太清楚，查谷歌
+     * @param orderBy 排序
+     * @return 返回一个对象，有可能是null
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public <T> T findFirst(Class<T> clazz, String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) throws InstantiationException, IllegalAccessException {
         SQLiteDatabase db = dbHelper.openDatabase();
         T t = null;
@@ -219,6 +227,12 @@ public class AIIDBManager {
         return t;
     }
 
+    /**
+     * 把游标的值放入变量里
+     * @param field 变量对象
+     * @param cursor 游标对象
+     * @param t 变量的父对象
+     */
     synchronized private <T> void setValueToObject(Field field, Cursor cursor, T t) {
 
         field.setAccessible(true);
@@ -258,12 +272,12 @@ public class AIIDBManager {
                 field.set(t, stringValue);
             } else if (field.getType().equals(List.class) || field.getType().equals(ArrayList.class)) {
                 String stringValue = cursor.getString(cursor.getColumnIndex(fieldName));
-                if (!TextUtils.isEmpty(stringValue) && jsonInterface != null) {
+                if (!TextUtils.isEmpty(stringValue)) {
 
                     ParameterizedType type = (ParameterizedType) field.getGenericType();
                     if (type.getActualTypeArguments() != null && type.getActualTypeArguments().length > 0) {
                         Class<?> childClass = (Class<?>) type.getActualTypeArguments()[0];
-                        List<?> list = jsonInterface.parseArray(stringValue, childClass);
+                        List<?> list = AiiJson.parseArray(stringValue, childClass);
                         field.set(t, list);
                     }
                 }
@@ -281,9 +295,9 @@ public class AIIDBManager {
             } else {
                 try {
                     String stringValue = cursor.getString(cursor.getColumnIndex(field.getName()));
-                    if (!TextUtils.isEmpty(stringValue) && !stringValue.trim().equals("{}") && jsonInterface != null) {
+                    if (!TextUtils.isEmpty(stringValue) && !stringValue.trim().equals("{}")) {
                         if(!Modifier.isAbstract(field.getType().getModifiers())) {
-                            Object obj = jsonInterface.parseObject(stringValue, field.getType());
+                            Object obj = AiiJson.parseObject(stringValue, field.getType());
                             field.set(t, obj);
                         }
 
@@ -337,6 +351,10 @@ public class AIIDBManager {
         delete(clazz, "id=?", new String[]{id + ""});
     }
 
+    /**
+     * 用作扩展执行一些复杂或者奇怪sql的方法，一般不用
+     * @param sql sql语句
+     */
     synchronized public void execute(String sql) {
         SQLiteDatabase db = dbHelper.openDatabase();
         db.beginTransaction();
@@ -348,7 +366,11 @@ public class AIIDBManager {
         //每次执行完成必须关闭数据库
         closeCursor();
     }
-
+    /**
+     * 用作扩展执行一些复杂或者奇怪sql的方法，一般不用
+     * @param sql sql语句
+     * @return Cursor 对象，记得用完自己要关闭
+     */
     synchronized public Cursor rawQuery(String sql) {
         SQLiteDatabase db = dbHelper.openDatabase();
         db.beginTransaction();
@@ -361,6 +383,9 @@ public class AIIDBManager {
         }
     }
 
+    /**
+     * 关闭数据库
+     */
     synchronized public void closeCursor() {
         //每次执行完成必须关闭数据库
         if(dbHelper == null){

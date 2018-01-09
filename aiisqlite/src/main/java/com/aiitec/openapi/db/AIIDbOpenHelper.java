@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author  Anthony
@@ -28,20 +28,21 @@ import java.util.Map;
  */
 public class AIIDbOpenHelper extends SQLiteOpenHelper {
 
+    /**解决多线程并发*/
+    private AtomicInteger mOpenCounter = new AtomicInteger();
     private static final int dbVersion = 1;
     private static HashMap<String, AIIDbOpenHelper> instances = new HashMap<>();
     /**默认数据库名*/
     private static String currontDbName = "currentDbName.db";
     private Context context;
+    private SQLiteDatabase mDatabase;
+
     private AIIDbOpenHelper(Context context) {
         super(context, currontDbName, null, dbVersion);
         this.context = context;
 
     }
-    private AIIDbOpenHelper(Context context, long userId) {
-        super(context, currontDbName, null, dbVersion);
-        this.context = context;
-    }
+
     private AIIDbOpenHelper(Context context, String dbName) {
         super(context, dbName, null, dbVersion);
         this.context = context;
@@ -67,7 +68,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     public static AIIDbOpenHelper getInstance(Context context, long userId) {
         currontDbName = context.getPackageName()+"_"+userId+".db";
         if (instances.get(currontDbName) == null) {
-            instances.put(currontDbName, new AIIDbOpenHelper(context.getApplicationContext(), userId));
+            instances.put(currontDbName, new AIIDbOpenHelper(context.getApplicationContext()));
         }
         return instances.get(currontDbName);
     }
@@ -80,47 +81,48 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
         return instances.get(dbName);
     }
 
-    public void closeAllDB() {
-        if (instances.size() == 0) {
-            return;
+    /**
+     * 打开数据库对象
+     * @return
+     */
+    public synchronized SQLiteDatabase openDatabase() {
+
+        int index = mOpenCounter.incrementAndGet();
+        if (index == 1) {
+            // Opening new database
+            mDatabase = getWritableDatabase();
+        } else if(mDatabase == null){
+            mDatabase = getWritableDatabase();
         }
-        for (Map.Entry<String, AIIDbOpenHelper> entry : instances.entrySet()) {
-            closeDatabace(entry.getValue());
-        }
-        instances.clear();
+        return mDatabase;
     }
-    public void closeDB(long userId) {
-        if (instances.size() == 0) {
-            return;
-        }
-        String dbName = context.getPackageName()+"_"+userId+".db";
-        closeDB(dbName);
-    }
-    public void closeDB(String dbName) {
-        if (instances.size() == 0) {
-            return;
-        }
-        AIIDbOpenHelper helper = instances.get(dbName);
-        if(helper == null) {
-            return;
-        }
-        closeDatabace(helper);
-        instances.remove(dbName);
-    }
-    private void closeDatabace(AIIDbOpenHelper helper){
-        if (helper != null) {
+    /**
+     * 多线程下关闭
+     */
+    public synchronized void closeDatabase() {
+        int index = mOpenCounter.decrementAndGet();
+        if (index == 0) {
+            if(mDatabase == null){
+                return;
+            }
             try {
-                SQLiteDatabase db = helper.getWritableDatabase();
-                db.close();
-            } catch (Exception e) {
+                mDatabase.close();
+            } catch (Exception e){
                 e.printStackTrace();
             }
+            mDatabase = null;
         }
     }
 
+    /**
+     * 创建或者更新表
+     * @param clazz 类名，一般表名就是 类名.simpleName
+     */
     public void createOrUpdateTable(Class<?> clazz) {
-
-        SQLiteDatabase db = getWritableDatabase();
+        if(mDatabase == null){
+            mDatabase = openDatabase();
+        }
+        SQLiteDatabase db = mDatabase;
         boolean isExit = DbUtils.checkTableState(db, clazz);
         if (isExit) {// 存在表并且字段没有改变，就不需要建表了
             DbUtils.updateTable(db, clazz);

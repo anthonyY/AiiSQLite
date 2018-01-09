@@ -18,13 +18,14 @@ void dbManager.delete(对象T.class, "name=?",new String[]{"张三"});
 void dbManager.deleteAll(对象T.class);
 void dbManager.deleteById(id);  
 
+@version 1.0.2 修复多线程访问出现database is closed 的异常
 ```
 ### 引用方式  
 
 ``` 
 dependencies {
     ...  
-     compile 'com.aiitec.aiisqlite:aiisqlte:1.0.1'
+     compile 'com.aiitec.aiisqlite:aiisqlte:1.0.2'
 }
 ```
 

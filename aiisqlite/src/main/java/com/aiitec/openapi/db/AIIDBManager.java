@@ -78,7 +78,7 @@ public class AIIDBManager {
         } else {
             return;
         }
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = dbHelper.openDatabase();
         if (!db.isOpen()) {
             return;
         }
@@ -93,12 +93,13 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        db.close();
+        closeCursor();
     }
 
     synchronized public <T> void save(T t) {
+
+        SQLiteDatabase db = dbHelper.openDatabase();
         dbHelper.createOrUpdateTable(t.getClass());
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
         if (!db.isOpen()) {
             return;
         }
@@ -110,12 +111,14 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        db.close();
+       
+        closeCursor();
     }
 
     synchronized public <T> void update(T t) {
+
+        SQLiteDatabase db = dbHelper.openDatabase();
         dbHelper.createOrUpdateTable(t.getClass());
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
         if (!db.isOpen()) {
             return;
         }
@@ -127,7 +130,7 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        db.close();
+        closeCursor();
     }
 
 
@@ -152,7 +155,7 @@ public class AIIDBManager {
     }
 
     public <T> List<T> findAll(Class<T> clazz, String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) throws InstantiationException, IllegalAccessException {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = dbHelper.openDatabase();
         List<T> list = new ArrayList<T>();
         if (db.isOpen()) {
             boolean isExit = DbUtils.checkTableState(db, clazz);
@@ -172,7 +175,7 @@ public class AIIDBManager {
             }
         }
         //每次执行完成必须关闭数据库
-        db.close();
+        closeCursor();
         return list;
     }
 
@@ -193,7 +196,7 @@ public class AIIDBManager {
     }
 
     public <T> T findFirst(Class<T> clazz, String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) throws InstantiationException, IllegalAccessException {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = dbHelper.openDatabase();
         T t = null;
         if (db.isOpen()) {
             boolean isExit = DbUtils.checkTableState(db, clazz);
@@ -212,7 +215,7 @@ public class AIIDBManager {
             }
         }
         //每次执行完成必须关闭数据库
-        db.close();
+        closeCursor();
         return t;
     }
 
@@ -313,11 +316,12 @@ public class AIIDBManager {
      */
     synchronized public void delete(Class<?> clazz, String whereClause, String[] whereArgs) {
 
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = dbHelper.openDatabase();
         db.beginTransaction();
         if (db.isOpen()) {
             boolean isExit = DbUtils.checkTableState(db, clazz);
-            if (isExit) {//必须存在表才可以删除
+            if (isExit) {
+                //必须存在表才可以删除
                 DbUtils.updateTable(db, clazz);
 
                 db.delete(DbUtils.getTableName(clazz), whereClause, whereArgs);
@@ -326,7 +330,7 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        db.close();
+        closeCursor();
     }
 
     synchronized public void deleteById(Class<?> clazz, long id) {
@@ -334,7 +338,7 @@ public class AIIDBManager {
     }
 
     synchronized public void execute(String sql) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = dbHelper.openDatabase();
         db.beginTransaction();
         if (db.isOpen()) {
             db.execSQL(sql);
@@ -342,11 +346,11 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        db.close();
+        closeCursor();
     }
 
     synchronized public Cursor rawQuery(String sql) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = dbHelper.openDatabase();
         db.beginTransaction();
         if (db.isOpen()) {
             Cursor cursor = db.rawQuery(sql, null);
@@ -358,10 +362,11 @@ public class AIIDBManager {
     }
 
     synchronized public void closeCursor() {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.endTransaction();
         //每次执行完成必须关闭数据库
-        db.close();
+        if(dbHelper == null){
+            return;
+        }
+        dbHelper.closeDatabase();
     }
 
 }

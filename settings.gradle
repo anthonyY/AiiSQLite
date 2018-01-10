@@ -1,1 +1,1 @@
-include ':example', ':aiisqlite'
+include ':example', ':aiisqlte'

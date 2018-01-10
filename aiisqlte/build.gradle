@@ -83,7 +83,7 @@ install {
             project {
                 packaging 'aar'
                 //项目描述，随意填
-                name 'A Android Sqlite save library.'
+                name 'A Android Sqlite save library. I rename the library and upload, than it can not to work, so I have to rename to last name.'
                 url siteUrl
                 licenses {
                     license {

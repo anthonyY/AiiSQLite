@@ -1,22 +1,39 @@
 package com.aiitec.openapi.db.utils;
 
-import android.annotation.SuppressLint;
 
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * 工具类
- * @author Anthony
- */
+
 public class CombinationUtil {
 
-	private static HashMap<Field, Class<?>> childClasses = new HashMap<Field, Class<?>>();
-	  
-	private static HashMap<Class<?>, List<Field>> fieldMap = new HashMap<Class<?>, List<Field>>();
+	
+
+	private static HashMap<Class<?>, List<Field>> map = new HashMap<>();
+    private static SoftReference<HashMap<Class<?>, List<Field>>> softMap = new SoftReference<>(map);
+	private static HashMap<Field, Class<?>> childClasses = new HashMap<>();
+    private static SoftReference<HashMap<Field, Class<?>>> softChildClasses = new SoftReference<>(childClasses);
+	/**需要过滤的字段*/
+	private static List<String> filterFields = new ArrayList<>();
+	static {
+        filterFields.add("serialVersionUID");
+        filterFields.add("CREATOR");
+        filterFields.add("companion");
+        filterFields.add("this$0");
+    }
+    public static void addFilterField(String fieldName){
+        filterFields.add(fieldName);
+    }
+    public static void removeFilterField(String fieldName){
+        if(filterFields.contains(fieldName)){
+            filterFields.remove(fieldName);
+        }
+    }
     /**
      * 获取当前类和父类所有字段 ，递归遍历
      * 
@@ -39,20 +56,26 @@ public class CombinationUtil {
             if (field.isSynthetic()) {
                 continue;
             }
-            if (field.getName().equalsIgnoreCase("serialVersionUID")) {
+            boolean isfilterField = false;
+            for(String filterField : filterFields){
+                if (field.getName().equalsIgnoreCase(filterField)) {
+                    isfilterField = true;
+                    break;
+                }
+            }
+            if(isfilterField){
                 continue;
             }
-            if (field.getName().equals("CREATOR")) {
-                continue;
-            }
-            //kotlin 静态的字段
-            if (field.getName().equals("companion")) {
+
+            //过滤掉transient 装饰符的字段
+            int modifiers = field.getModifiers();
+            if(Modifier.isTransient(modifiers)){
                 continue;
             }
 
             // 变量名
             String filedName = field.getName();
-            
+
             boolean isSame = false;
             for (Field field2 : allFields) {
                 if ((field2.getName().equals(filedName))) {// 已经有了
@@ -78,24 +101,34 @@ public class CombinationUtil {
      * @param clazz
      * @return
      */
-    @SuppressLint("NewApi") 
     public static List<Field> getAllFields(Class<?> clazz) {
-
-       
-        List<Field> allFields = fieldMap.get(clazz);
+        List<Field> allFields = null;
+        HashMap<Class<?>, List<Field>> map = softMap.get();
+        if(map != null){
+            allFields = map.get(clazz);
+        } else {
+            map = new HashMap<>();
+            softMap = new SoftReference<>(map);
+        }
         if(allFields == null){
-        	 allFields = new ArrayList<Field>();
+        	 allFields = new ArrayList<>();
         	 allFields = getFields(clazz, allFields);
-//        	 if(fieldMap.size() > 50){//存储的数据不要太大，否则浪费内存
-//        		 fieldMap.remove(clazz);//多了就移除掉一条，保持最高50条
-//        	 }
-        	 fieldMap.put(clazz, allFields);
+            map.put(clazz, allFields);
         }
         
         return allFields;
     }
+    
     public static Class<?> getChildClass(Field field){
-    	Class<?> childClass = childClasses.get(field);
+        HashMap<Field, Class<?>> childClasses = softChildClasses.get();
+        Class<?> childClass = null;
+        if(childClasses != null){
+            childClass = childClasses.get(field);
+        } else {
+            childClasses = new HashMap<>();
+            softChildClasses = new SoftReference<>(childClasses);
+        }
+
     	if(childClass == null){
     		ParameterizedType type = (ParameterizedType) field.getGenericType();
             if (type.getActualTypeArguments() != null && type.getActualTypeArguments().length > 0) {
@@ -116,11 +149,14 @@ public class CombinationUtil {
      * @return 是否是常用数据类型
      */
     public static boolean isCommonField(Class<?> classType) {
-        boolean isCommonField = (classType.equals(int.class) || classType.equals(Integer.class)
-                || classType.equals(float.class) || classType.equals(Float.class) || classType.equals(double.class)
-                || classType.equals(Double.class) || classType.equals(long.class) || classType.equals(Long.class)
-                || classType.equals(char.class) || classType.equals(String.class) || classType.equals(boolean.class) || classType
-                .equals(Boolean.class));
+        boolean isCommonField = (classType.equals(int.class) || classType.equals(Integer.class) ||
+                classType.equals(short.class) || classType.equals(Short.class) ||
+                classType.equals(byte.class) || classType.equals(Byte.class) ||
+                classType.equals(float.class) || classType.equals(Float.class) ||
+                classType.equals(double.class) || classType.equals(Double.class) ||
+                classType.equals(long.class) ||classType.equals(Long.class) ||
+                classType.equals(char.class) || classType.equals(String.class) ||
+                classType.equals(boolean.class) || classType.equals(Boolean.class) );
         return isCommonField;
     }
 

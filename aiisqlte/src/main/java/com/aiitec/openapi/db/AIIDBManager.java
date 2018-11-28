@@ -7,7 +7,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.aiitec.openapi.db.annotation.Column;
-import com.aiitec.openapi.db.annotation.Format;
 import com.aiitec.openapi.db.utils.AiiJson;
 import com.aiitec.openapi.db.utils.CombinationUtil;
 import com.aiitec.openapi.db.utils.DbUtils;
@@ -282,15 +281,9 @@ public class AIIDBManager {
                     }
                 }
             } else if (field.getType().equals(Date.class)) {
-                String stringValue = cursor.getString(cursor.getColumnIndex(fieldName));
-                Format format = field.getAnnotation(Format.class);
-                if(format != null && !TextUtils.isEmpty(format.value())){
-                    Date date = DbUtils.timeStamp2Date(stringValue, format.value());
-                    field.set(t, date);
-                } else {
-                    Date date = DbUtils.timeStamp2Date(stringValue);
-                    field.set(t, date);
-                }
+                long longValue = cursor.getLong(cursor.getColumnIndex(fieldName));
+                Date date = new Date(longValue);
+                field.set(t, date);
 
             } else {
                 try {

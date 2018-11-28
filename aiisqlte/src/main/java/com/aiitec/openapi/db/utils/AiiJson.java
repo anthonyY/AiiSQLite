@@ -131,7 +131,15 @@ public class AiiJson {
             sb.append("[");
 
             for (Object obj : (List)t){
-                sb.append(defaultToString(obj)).append(",");
+                if(CombinationUtil.isCommonField(obj.getClass())){
+                    if(Number.class.isAssignableFrom(obj.getClass())){
+                        sb.append(String.valueOf(obj)).append(",");
+                    } else {
+                        sb.append("\"").append(String.valueOf(obj)).append("\"").append(",");
+                    }
+                } else {
+                    sb.append(defaultToString(obj)).append(",");
+                }
             }
             if(sb.toString().endsWith(",")){
                 sb.deleteCharAt(sb.length()-1);
@@ -139,11 +147,12 @@ public class AiiJson {
             sb.append("]");
         } else {
             sb.append("{");
-            for (Field field : t.getClass().getDeclaredFields()) {
+            List<Field> fields = CombinationUtil.getAllFields(t.getClass());
+            for (Field field : fields) {
                 field.setAccessible(true);
                 try {
                     Object value = field.get(t);
-                    if (value != null) {
+                    if (value != null && !value.toString().equals("-1") && !value.toString().equals("-1.0")) {
                         sb.append("\"").append(field.getName()).append("\"").append(":");
                         if (CombinationUtil.isCommonField(field.getType())) {
                             sb.append("\"").append(value).append("\"");
@@ -152,7 +161,15 @@ public class AiiJson {
                             sb.append("[");
                             List list = (List) value;
                             for (Object obj : list){
-                                sb.append(defaultToString(obj)).append(",");
+                                if(CombinationUtil.isCommonField(obj.getClass())){
+                                    if(Number.class.isAssignableFrom(obj.getClass())){
+                                        sb.append(String.valueOf(obj)).append(",");
+                                    } else {
+                                        sb.append("\"").append(String.valueOf(obj)).append("\"").append(",");
+                                    }
+                                } else {
+                                    sb.append(defaultToString(obj)).append(",");
+                                }
                             }
                             if(sb.toString().endsWith(",")){
                                 sb.deleteCharAt(sb.length()-1);
@@ -160,7 +177,11 @@ public class AiiJson {
                             sb.append("]");
                         }
                         else {
-                            sb.append(value);
+                            if(value.toString().trim().startsWith("{")){
+                                sb.append(value);
+                            } else {
+                                sb.append("\"").append(value).append("\"");
+                            }
                         }
                         sb.append(",");
                     }

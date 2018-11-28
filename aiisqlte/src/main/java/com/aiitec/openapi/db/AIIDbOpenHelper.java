@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
 
 import com.aiitec.openapi.db.annotation.Column;
-import com.aiitec.openapi.db.annotation.Format;
 import com.aiitec.openapi.db.annotation.NotNull;
 import com.aiitec.openapi.db.annotation.Unique;
 import com.aiitec.openapi.db.utils.AiiJson;
@@ -157,15 +156,17 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
             NotNull notNull = fields.get(i).getAnnotation(NotNull.class);
 
             sb.append(" " + columnName);
-            if (fields.get(i).getType().equals(int.class)
-                    || fields.get(i).getType().equals(long.class)) {
+            Class fieldClazz = fields.get(i).getType();
+            if (fieldClazz.equals(int.class) || fieldClazz.equals(long.class) ||
+                    fieldClazz.equals(Integer.class) || fieldClazz.equals(Long.class)) {
                 sb.append(" NUMRIC ");
-            } else if (fields.get(i).getType().equals(float.class)
-                    || fields.get(i).getType().equals(double.class)) {
+            } else if (fieldClazz.equals(float.class) || fieldClazz.equals(double.class) ||
+                    fieldClazz.equals(Float.class) || fieldClazz.equals(Double.class)) {
                 sb.append(" NUMRIC ");
-            } else if (fields.get(i).getType().equals(char.class)
-                    || fields.get(i).getType().equals(String.class)) {
+            } else if (fieldClazz.equals(char.class) || fieldClazz.equals(String.class)) {
                 sb.append(" TEXT ");
+            } else if (fieldClazz.equals(Date.class)) {
+                sb.append(" INTEGER ");
             } else {
                 sb.append(" TEXT ");
             }
@@ -218,15 +219,15 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
                 e.printStackTrace();
             }
             if (o != null) {
-
-                if (fields.get(i).getType().equals(int.class)) {
+                Class clazz = fields.get(i).getType();
+                if (clazz.equals(int.class)||clazz.equals(Integer.class)) {
                     values.put(columnName, (Integer) o);
 
-                } else if (fields.get(i).getType().equals(long.class)) {
+                } else if (clazz.equals(long.class)||clazz.equals(Long.class)) {
                     values.put(columnName, (Long) o);
-                } else if (fields.get(i).getType().equals(float.class)) {
+                } else if (clazz.equals(float.class) || clazz.equals(Float.class)) {
                     values.put(columnName, (Float) o);
-                } else if (fields.get(i).getType().equals(double.class)) {
+                } else if (clazz.equals(double.class) || clazz.equals(Double.class)) {
                     values.put(columnName, (Double) o);
                 } else if (fields.get(i).getType().equals(char.class)
                         || fields.get(i).getType().equals(String.class)) {
@@ -250,16 +251,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
                         e.printStackTrace();
                     }
                 } else if (fields.get(i).getType().equals(Date.class)) {
-                    Format format = fields.get(i).getAnnotation(Format.class);
-
-                    if(format != null && !TextUtils.isEmpty(format.value())){
-                        String formatStr = format.value();
-                        String time = DbUtils.date2TimeStamp((Date) o, formatStr);
-                        values.put(columnName, time);
-                    } else {
-                        String time = DbUtils.date2TimeStamp((Date) o);
-                        values.put(columnName, time);
-                    }
+                    values.put(columnName, ((Date)o).getTime());
 
                 } else {
                     try {
@@ -314,20 +306,20 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     		if (o != null ) {
 
     		    Class clazz = fields.get(i).getType();
-    			if (clazz.equals(int.class)) {
+    			if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
                     //保存可以不用考虑这些东西，但是更新就要防止空和-1
     				if((Integer) o != -1){
     					values.put(columnName, (Integer) o);
     				}
-    			} else if (clazz.equals(long.class)) {
+    			} else if (clazz.equals(long.class)||clazz.equals(Long.class)) {
     				if((Long) o != -1){
     					values.put(columnName, (Long) o);
     				}
-    			} else if (clazz.equals(float.class)) {
+    			} else if (clazz.equals(float.class)||clazz.equals(Float.class)) {
     				if((Float) o != -1){
     					values.put(columnName, (Float) o);
     				}
-    			} else if (clazz.equals(double.class)) {
+    			} else if (clazz.equals(double.class)||clazz.equals(Double.class)) {
     				if((Double) o != -1){
     					values.put(columnName, (Double) o);
     				}
@@ -343,8 +335,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     					e.printStackTrace();
     				}
     			} else if (clazz.equals(Date.class)) {
-    				String time = DbUtils.date2TimeStamp((Date) o);
-    				values.put(columnName, time);
+                    values.put(columnName, ((Date)o).getTime());
     			} else if(!Modifier.isAbstract(clazz.getModifiers())) {
                     try {
                         values.put(columnName, AiiJson.toJsonString(o));

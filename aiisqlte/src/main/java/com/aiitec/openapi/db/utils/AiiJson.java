@@ -126,16 +126,16 @@ public class AiiJson {
         if (t.getClass() == String.class || t.getClass().isPrimitive()) {
             return t.toString();
         }
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if(List.class.isAssignableFrom(t.getClass())){
             sb.append("[");
 
             for (Object obj : (List)t){
                 if(CombinationUtil.isCommonField(obj.getClass())){
                     if(Number.class.isAssignableFrom(obj.getClass())){
-                        sb.append(String.valueOf(obj)).append(",");
+                        sb.append(obj).append(",");
                     } else {
-                        sb.append("\"").append(String.valueOf(obj)).append("\"").append(",");
+                        sb.append("\"").append(obj).append("\"").append(",");
                     }
                 } else {
                     sb.append(defaultToString(obj)).append(",");
@@ -152,7 +152,7 @@ public class AiiJson {
                 field.setAccessible(true);
                 try {
                     Object value = field.get(t);
-                    if (value != null && !value.toString().equals("-1") && !value.toString().equals("-1.0")) {
+                    if (value != null /* && !value.toString().equals("-1") && !value.toString().equals("-1.0") */) {
                         sb.append("\"").append(field.getName()).append("\"").append(":");
                         if (CombinationUtil.isCommonField(field.getType())) {
                             sb.append("\"").append(value).append("\"");
@@ -163,9 +163,9 @@ public class AiiJson {
                             for (Object obj : list){
                                 if(CombinationUtil.isCommonField(obj.getClass())){
                                     if(Number.class.isAssignableFrom(obj.getClass())){
-                                        sb.append(String.valueOf(obj)).append(",");
+                                        sb.append(obj).append(",");
                                     } else {
-                                        sb.append("\"").append(String.valueOf(obj)).append("\"").append(",");
+                                        sb.append("\"").append(obj).append("\"").append(",");
                                     }
                                 } else {
                                     sb.append(defaultToString(obj)).append(",");

@@ -1,8 +1,10 @@
 package com.aiitec.openapi.db;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -17,6 +19,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 
 /**
@@ -80,7 +83,7 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        closeCursor();
+        closeDatabase();
     }
 
     synchronized public <T> void save(T t) {
@@ -98,8 +101,8 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-       
-        closeCursor();
+
+        closeDatabase();
     }
 
     synchronized public <T> void update(T t) {
@@ -117,7 +120,7 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        closeCursor();
+        closeDatabase();
     }
 
 
@@ -162,7 +165,7 @@ public class AIIDBManager {
             }
         }
         //每次执行完成必须关闭数据库
-        closeCursor();
+        closeDatabase();
         return list;
     }
 
@@ -222,7 +225,7 @@ public class AIIDBManager {
             }
         }
         //每次执行完成必须关闭数据库
-        closeCursor();
+        closeDatabase();
         return t;
     }
 
@@ -287,7 +290,7 @@ public class AIIDBManager {
 
             } else {
                 try {
-                    String stringValue = cursor.getString(cursor.getColumnIndex(field.getName()));
+                    String stringValue = cursor.getString(cursor.getColumnIndex(fieldName));
                     if (!TextUtils.isEmpty(stringValue) && !stringValue.trim().equals("{}")) {
                         if(!Modifier.isAbstract(field.getType().getModifiers())) {
                             Object obj = AiiJson.parseObject(stringValue, field.getType());
@@ -337,11 +340,36 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        closeCursor();
+        closeDatabase();
     }
 
     synchronized public void deleteById(Class<?> clazz, long id) {
         delete(clazz, "id=?", new String[]{id + ""});
+    }
+
+    synchronized public Long count(Class<?> clazz, String whereClause, String[] whereArgs) {
+        long count = 0;
+        if(whereClause == null) whereClause = "";
+        SQLiteDatabase db = dbHelper.openDatabase();
+        if (db.isOpen()) {
+            boolean isExit = DbUtils.checkTableState(db, clazz);
+            if (isExit) {
+
+                String tableName = DbUtils.getTableName(clazz);
+                String sql = "select IFNULL(count(*),0) as count from " + tableName;
+                if(whereArgs != null && whereArgs.length > 0){
+                    sql = sql +  " where " + whereClause;
+                }
+                Cursor cursor = db.rawQuery(sql, whereArgs);
+                if(cursor.moveToFirst()) {
+                    count = cursor.getLong(cursor.getColumnIndex("count"));
+                }
+                cursor.close();
+            }
+        }
+        //每次执行完成必须关闭数据库
+        closeDatabase();
+        return count;
     }
 
     /**
@@ -357,27 +385,36 @@ public class AIIDBManager {
         db.setTransactionSuccessful();
         db.endTransaction();
         //每次执行完成必须关闭数据库
-        closeCursor();
+        closeDatabase();
     }
     /**
      * 用作扩展执行一些复杂或者奇怪sql的方法，一般不用
      * @param sql sql语句
      * @return Cursor 对象，记得用完自己要关闭
+     * @deprecated
      */
     synchronized public Cursor rawQuery(String sql) {
         SQLiteDatabase db = dbHelper.openDatabase();
-        db.beginTransaction();
         if (db.isOpen()) {
-            Cursor cursor = db.rawQuery(sql, null);
-            db.setTransactionSuccessful();
-            return cursor;
+            return db.rawQuery(sql, null);
         } else {
             return null;
         }
     }
 
+    @SuppressLint("NewApi")
+    synchronized public void rawQuery(String sql, String[] whereArgs, Function<Cursor,Void> fun) {
+        SQLiteDatabase db = dbHelper.openDatabase();
+        if (db.isOpen()) {
+            Cursor cursor = db.rawQuery(sql, whereArgs);
+            fun.apply(cursor);
+            cursor.close();
+        }
+    }
+
     /**
-     * 关闭数据库
+     * 关闭数据库，这个名字取得不对，用途是关闭数据库，而不是关闭游标，所以该方法设置为过时
+     *
      */
     synchronized public void closeCursor() {
         //每次执行完成必须关闭数据库
@@ -385,6 +422,27 @@ public class AIIDBManager {
             return;
         }
         dbHelper.closeDatabase();
+    }
+
+    /**
+     * 关闭数据库
+     */
+    synchronized public void closeDatabase() {
+        //每次执行完成必须关闭数据库
+        if(dbHelper == null){
+            return;
+        }
+        dbHelper.closeDatabase();
+    }
+
+    /**
+     * 查看表是否存在
+     */
+    synchronized public boolean checkTableIsExsist(Class<?> clazz) {
+        SQLiteDatabase db = dbHelper.openDatabase();
+        boolean b = DbUtils.checkTableState(db, clazz);
+        dbHelper.closeDatabase();
+        return b;
     }
 
 }

@@ -20,6 +20,11 @@ void dbManager.deleteById(id);
 
 @version 1.0.2 修复多线程访问出现database is closed 的异常
 @version 1.0.3 删除JsonInterface
+@version 1.0.7
+    * 增加自定义查询方法 public void rawQuery(String sql, String[] whereArgs, Function<Cursor,Void> fun)
+    * 增加查询总数量方法 public Long count(Class<?> clazz, String whereClause, String[] whereArgs)
+    * 增加查询表是否存在的方法 public boolean checkTableIsExsist(Class<?> clazz)
+    * -1 变为可用值，之前的版本设计时字段考虑用 int,没有空的情况，就用-1代替空，现在更正，-1就是-1，不能代表空，需要空请定义 Integer
 ```
 ### 引用方式  
 

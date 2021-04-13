@@ -146,8 +146,7 @@ public class DbUtils {
         Cursor cursor = null;
         try {
             // 方法1
-            cursor = db.rawQuery("SELECT * FROM " + tableName + " LIMIT 1",
-                    null);
+            cursor = db.rawQuery("SELECT * FROM " + tableName + " LIMIT 1", null);
             result = cursor != null && cursor.getColumnIndex(columnName) != -1;
             //方法2
             // cursor = db

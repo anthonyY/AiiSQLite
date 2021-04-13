@@ -1,10 +1,12 @@
 package com.aiitec.aiisqlite;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -12,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aiitec.openapi.db.AIIDBManager;
 import com.aiitec.openapi.db.utils.DbUtils;
@@ -21,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 /**
  * 数据库存储例子
@@ -50,7 +54,7 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     private AIIDBManager aiiDbManager;
-    private Button btnSave, btnRead;
+    private Button btnSave, btnRead, btnCustom, btnCount;
     private EditText etTitle;
     private MyAdapter adapter;
     private ListView listView;
@@ -68,10 +72,12 @@ public class MainActivity extends AppCompatActivity {
 //        String dbName = "CompanyA.db";
 //        aiiDbManager = new AIIDBManager(this, dbName);//根据数据库名建的数据库
 
-        listView = (ListView) findViewById(R.id.listView);
-        btnSave = (Button) findViewById(R.id.btnSave);
-        btnRead = (Button) findViewById(R.id.btnRead);
-        etTitle = (EditText) findViewById(R.id.etTitle);
+        listView = findViewById(R.id.listView);
+        btnSave = findViewById(R.id.btnSave);
+        btnRead = findViewById(R.id.btnRead);
+        etTitle = findViewById(R.id.etTitle);
+        btnCount = findViewById(R.id.btnCount);
+        btnCustom = findViewById(R.id.btnCustom);
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,10 +90,39 @@ public class MainActivity extends AppCompatActivity {
                 readDatas();
             }
         });
+        btnCustom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    aiiDBManager.rawQuery("select * from Video where audio_id > ?", new String[]{"80"},  new Function<Cursor, Void>() {
+                        @Override
+                        public Void apply(Cursor cursor) {
+                            while (cursor.moveToNext()){
+                                String title = cursor.getString(cursor.getColumnIndex("title"));
+                                Log.i("AiiDbManager","title == "+ title);
+                            }
+                            return null;
+                        }
+                    });
+                }
+
+            }
+        });
+        btnCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Long count = aiiDBManager.count(Video.class, "audio_id > ?", new String[]{"90"});
+                Log.i("AiiDbManager", "count = "+count);
+                Toast.makeText(MainActivity.this, "Video 表的自定义条件的数量有"+count, Toast.LENGTH_SHORT).show();
+            }
+        });
         adapter = new MyAdapter(this);
         listView.setAdapter(adapter);
         aiiDBManager = new AIIDBManager(this);
         cachedThreadPool = Executors.newCachedThreadPool();
+        boolean isExsist = aiiDBManager.checkTableIsExsist(Video.class);
+        Log.i("AiiDbManager", "Video table is exsist :"+isExsist);
+
     }
 
     /**

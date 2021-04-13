@@ -42,7 +42,7 @@ def libName = "AiiSqlite"
 //发布到组织名称名字，必须填写
 group = "com.aiitec.aiisqlite"
 // 版本号，下次更新是只需要更改版本号即可
-version = "1.0.6"
+version = "1.0.7"
 //上面配置后上传至JCenter后的编译路径是这样的： compile 'com.aiitec.aiisqlite:aiisqlte:1.0.6'
 
 //生成源文件
@@ -83,7 +83,7 @@ install {
             project {
                 packaging 'aar'
                 //项目描述，随意填
-                name 'A Android Sqlite save library. I rename the library and upload, than it can not to work, so I have to rename to last name.'
+                name 'A Android Sqlite save library. '
                 url siteUrl
                 licenses {
                     license {

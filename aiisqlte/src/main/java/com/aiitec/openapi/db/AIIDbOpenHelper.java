@@ -199,69 +199,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
             if (columnName.equals("this$0")) {
                 continue;
             }
-
-            Column column = fields.get(i).getAnnotation(Column.class);
-            
-            if (column != null) {
-                if(!TextUtils.isEmpty(column.value())){
-                    columnName = column.value();
-                }
-                else if(!TextUtils.isEmpty(column.column())){
-                    columnName = column.column();
-                }
-            }
-
-            Object o = null;
-            try {
-                fields.get(i).setAccessible(true);
-                o = fields.get(i).get(t);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (o != null) {
-                Class clazz = fields.get(i).getType();
-                if (clazz.equals(int.class)||clazz.equals(Integer.class)) {
-                    values.put(columnName, (Integer) o);
-
-                } else if (clazz.equals(long.class)||clazz.equals(Long.class)) {
-                    values.put(columnName, (Long) o);
-                } else if (clazz.equals(float.class) || clazz.equals(Float.class)) {
-                    values.put(columnName, (Float) o);
-                } else if (clazz.equals(double.class) || clazz.equals(Double.class)) {
-                    values.put(columnName, (Double) o);
-                } else if (fields.get(i).getType().equals(char.class)
-                        || fields.get(i).getType().equals(String.class)) {
-                    values.put(columnName, o.toString());
-                } else if (fields.get(i).getType().equals(Boolean.class)
-                        || fields.get(i).getType().equals(boolean.class)) {
-                    boolean booleanValue = (boolean) o;
-                    if(booleanValue){
-                        values.put(columnName, 1);
-                    } else {
-                        values.put(columnName, 0);
-                    }
-
-                }
-                else if (fields.get(i).getType().equals(List.class)
-                        || fields.get(i).getType().equals(ArrayList.class)) {
-
-                    try {
-                        values.put(columnName, AiiJson.toJsonString(o));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else if (fields.get(i).getType().equals(Date.class)) {
-                    values.put(columnName, ((Date)o).getTime());
-
-                } else {
-                    try {
-                        values.put(columnName, AiiJson.toJsonString(o));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
+            putValueToContentValues(fields.get(i), t, values);
         }
         db.replace(table, null, values);
 
@@ -278,73 +216,12 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     		if (fields.get(i).getName().equals("this$0")) {
     			continue;
     		}
-    		
     		//如果字段是唯一的，就加入唯一字段的List
     		Unique unique = fields.get(i).getAnnotation(Unique.class);
     		if(unique != null) {
                 uniqueField.add(fields.get(i));
             }
-    		
-    		Column column = fields.get(i).getAnnotation(Column.class);
-    		String columnName = fields.get(i).getName();
-    		if (column != null) {
-                if(!TextUtils.isEmpty(column.value())){
-                    columnName = column.value();
-                }
-                else if(!TextUtils.isEmpty(column.column())){
-                    columnName = column.column();
-                }
-    		}
-    		
-    		Object o = null;
-    		try {
-    			fields.get(i).setAccessible(true);
-    			o = fields.get(i).get(t);
-    		} catch (Exception e) {
-    			e.printStackTrace();
-    		}
-    		if (o != null ) {
-
-    		    Class clazz = fields.get(i).getType();
-    			if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
-                    //保存可以不用考虑这些东西，但是更新就要防止空和-1
-    				if((Integer) o != -1){
-    					values.put(columnName, (Integer) o);
-    				}
-    			} else if (clazz.equals(long.class)||clazz.equals(Long.class)) {
-    				if((Long) o != -1){
-    					values.put(columnName, (Long) o);
-    				}
-    			} else if (clazz.equals(float.class)||clazz.equals(Float.class)) {
-    				if((Float) o != -1){
-    					values.put(columnName, (Float) o);
-    				}
-    			} else if (clazz.equals(double.class)||clazz.equals(Double.class)) {
-    				if((Double) o != -1){
-    					values.put(columnName, (Double) o);
-    				}
-    			} else if (clazz.equals(char.class)
-    					|| clazz.equals(String.class)) {
-    				values.put(columnName, o.toString());
-    			} else if (clazz.equals(List.class)
-    					|| clazz.equals(ArrayList.class)) {
-    				
-    				try {
-    					values.put(columnName, AiiJson.toJsonString(o));
-    				} catch (Exception e) {
-    					e.printStackTrace();
-    				}
-    			} else if (clazz.equals(Date.class)) {
-                    values.put(columnName, ((Date)o).getTime());
-    			} else if(!Modifier.isAbstract(clazz.getModifiers())) {
-                    try {
-                        values.put(columnName, AiiJson.toJsonString(o));
-    				} catch (Exception e) {
-    					e.printStackTrace();
-    				}
-    			}
-    		}
-    		
+    		putValueToContentValues(fields.get(i), t, values);
     	}
     	String whereClause = null;
     	String[] whereArgs = null;
@@ -372,11 +249,75 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
 					e.printStackTrace();
 				}
     			index ++;
-    			
     		}
     		
     	}
     	db.update(table, values, whereClause, whereArgs);
+    }
+
+    private void putValueToContentValues(Field field, Object t, ContentValues values) {
+        Column column = field.getAnnotation(Column.class);
+        String columnName = field.getName();
+        if (column != null) {
+            if(!TextUtils.isEmpty(column.value())){
+                columnName = column.value();
+            }
+            else if(!TextUtils.isEmpty(column.column())){
+                columnName = column.column();
+            }
+        }
+        Object o = null;
+        try {
+            field.setAccessible(true);
+            o = field.get(t);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (o != null ) {
+
+            Class clazz = field.getType();
+            if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
+                //保存可以不用考虑这些东西，但是更新就要防止空和-1
+//                if(!Integer.valueOf(-1).equals(o)){
+                    values.put(columnName, (Integer) o);
+//                }
+            } else if (clazz.equals(long.class)||clazz.equals(Long.class)) {
+//                if(!Long.valueOf(-1).equals(o)){
+                    values.put(columnName, (Long) o);
+//                }
+            } else if (clazz.equals(float.class)||clazz.equals(Float.class)) {
+//                if(!Float.valueOf("-1").equals(o)){
+                    values.put(columnName, (Float) o);
+//                }
+            } else if (clazz.equals(double.class)||clazz.equals(Double.class)) {
+//                if(!Double.valueOf(-1).equals(o)){
+                    values.put(columnName, (Double) o);
+//                }
+            } else if (clazz.equals(char.class) || clazz.equals(String.class)) {
+                values.put(columnName, o.toString());
+            } else if (clazz.equals(boolean.class) || clazz.equals(Boolean.class)) {
+                boolean booleanValue = (boolean) o;
+                if(booleanValue){
+                    values.put(columnName, 1);
+                } else {
+                    values.put(columnName, 0);
+                }
+            } else if (clazz.equals(List.class) || clazz.equals(ArrayList.class)) {
+                try {
+                    values.put(columnName, AiiJson.toJsonString(o));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (clazz.equals(Date.class)) {
+                values.put(columnName, ((Date)o).getTime());
+            } else if(!Modifier.isAbstract(clazz.getModifiers())) {
+                try {
+                    values.put(columnName, AiiJson.toJsonString(o));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 

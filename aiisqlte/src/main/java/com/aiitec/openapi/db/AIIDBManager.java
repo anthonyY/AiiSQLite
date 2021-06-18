@@ -56,8 +56,17 @@ public class AIIDBManager {
         dbHelper = AIIDbOpenHelper.getInstance(context, userId);
     }
 
+    public AIIDBManager(Context context, long userId, int dbVersion) {
+        String currontDbName = context.getPackageName()+"_"+userId+".db";
+        dbHelper = AIIDbOpenHelper.getInstance(context, currontDbName, dbVersion);
+    }
+
     public AIIDBManager(Context context, String dbName) {
         dbHelper = AIIDbOpenHelper.getInstance(context, dbName);
+    }
+
+    public AIIDBManager(Context context, String dbName, int dbVersion) {
+        dbHelper = AIIDbOpenHelper.getInstance(context, dbName, dbVersion);
     }
 
 

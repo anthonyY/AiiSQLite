@@ -30,20 +30,17 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
 
     /**解决多线程并发*/
     private AtomicInteger mOpenCounter = new AtomicInteger();
-    private static final int dbVersion = 1;
     private static HashMap<String, AIIDbOpenHelper> instances = new HashMap<>();
-    /**默认数据库名*/
-    private static String currontDbName = "currentDbName.db";
     private Context context;
     private SQLiteDatabase mDatabase;
 
     private AIIDbOpenHelper(Context context) {
-        super(context, currontDbName, null, dbVersion);
+        super(context, "currentDbName.db", null, 1);
         this.context = context;
 
     }
 
-    private AIIDbOpenHelper(Context context, String dbName) {
+    private AIIDbOpenHelper(Context context, String dbName, int dbVersion) {
         super(context, dbName, null, dbVersion);
         this.context = context;
     }
@@ -58,25 +55,28 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     }
 
     public static AIIDbOpenHelper getInstance(Context context) {
-        currontDbName = context.getPackageName()+".db";
+        String currontDbName = context.getPackageName()+".db";
         if (instances.get(currontDbName) == null) {
-            instances.put(currontDbName, new AIIDbOpenHelper(context.getApplicationContext()));
+            instances.put(currontDbName, new AIIDbOpenHelper(context.getApplicationContext(), currontDbName, 1));
         }
         return instances.get(currontDbName);
     }
 
     public static AIIDbOpenHelper getInstance(Context context, long userId) {
-        currontDbName = context.getPackageName()+"_"+userId+".db";
-        if (instances.get(currontDbName) == null) {
-            instances.put(currontDbName, new AIIDbOpenHelper(context.getApplicationContext()));
-        }
-        return instances.get(currontDbName);
+        String currontDbName = context.getPackageName()+"_"+userId+".db";
+        return getInstance(context, currontDbName);
     }
 
     public static AIIDbOpenHelper getInstance(Context context, String dbName) {
-        currontDbName = dbName;
         if (instances.get(dbName) == null) {
-            instances.put(dbName, new AIIDbOpenHelper(context.getApplicationContext(), dbName));
+            instances.put(dbName, new AIIDbOpenHelper(context.getApplicationContext(), dbName, 1));
+        }
+        return instances.get(dbName);
+    }
+
+    public static AIIDbOpenHelper getInstance(Context context, String dbName, int dbVersion) {
+        if (instances.get(dbName) == null) {
+            instances.put(dbName, new AIIDbOpenHelper(context.getApplicationContext(), dbName, dbVersion));
         }
         return instances.get(dbName);
     }
@@ -276,7 +276,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
         if (o != null ) {
 
             Class clazz = field.getType();
-            if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
+            if (clazz.equals(int.class) || clazz.equals(Integer.class) || clazz.equals(byte.class) || clazz.equals(Byte.class)) {
                 //保存可以不用考虑这些东西，但是更新就要防止空和-1
 //                if(!Integer.valueOf(-1).equals(o)){
                     values.put(columnName, (Integer) o);

@@ -27,6 +27,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27+'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
-//    implementation project(':aiisqlte')
-    implementation 'com.aiitec.aiisqlite:aiisqlte:1.0.6'
+    implementation project(':aiisqlte')
+//    implementation 'com.github.anthonyY:AiiSQLite:1.0.0'
+//    implementation 'com.aiitec.aiisqlite:aiisqlte:1.0.6'
 }

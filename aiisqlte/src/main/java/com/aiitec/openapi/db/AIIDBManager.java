@@ -416,6 +416,7 @@ public class AIIDBManager {
         SQLiteDatabase db = dbHelper.openDatabase();
         if (db.isOpen()) {
             Cursor cursor = db.rawQuery(sql, whereArgs);
+            cursor.moveToFirst();
             fun.apply(cursor);
             cursor.close();
         }
@@ -450,6 +451,16 @@ public class AIIDBManager {
     synchronized public boolean checkTableIsExsist(Class<?> clazz) {
         SQLiteDatabase db = dbHelper.openDatabase();
         boolean b = DbUtils.checkTableState(db, clazz);
+        dbHelper.closeDatabase();
+        return b;
+    }
+
+    /**
+     * 查看表是否存在
+     */
+    synchronized public boolean checkTableIsExsist(String tableName) {
+        SQLiteDatabase db = dbHelper.openDatabase();
+        boolean b = DbUtils.checkTableState(db, tableName);
         dbHelper.closeDatabase();
         return b;
     }

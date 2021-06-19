@@ -49,8 +49,12 @@ public class DbUtils {
      *            新对象类
      */
     public static boolean checkTableState(SQLiteDatabase db, Class<?> clazz) {
-        boolean isExit = false;
         String tableName = DbUtils.getTableName(clazz);
+        return checkTableState(db, tableName);
+    }
+
+    public static boolean checkTableState(SQLiteDatabase db, String tableName) {
+        boolean isExit = false;
         Cursor cursor = db.rawQuery(
                 "SELECT COUNT(*) FROM sqlite_master where type='table' and name='"
                         + tableName + "'", null);
@@ -103,8 +107,8 @@ public class DbUtils {
             NotNull notNull = fields.get(i).getAnnotation(NotNull.class);
 
             StringBuilder sb = new StringBuilder();
-            sb.append("ALTER TABLE ").append(tableName).append(" ADD ")
-                    .append(columnName);
+            sb.append("ALTER TABLE '").append(tableName).append("' ADD '")
+                    .append(columnName).append("'");
             if (fields.get(i).getType().equals(int.class)
                     || fields.get(i).getType().equals(long.class)) {
                 sb.append(" NUMRIC ");

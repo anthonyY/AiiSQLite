@@ -132,7 +132,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
         String tableName = DbUtils.getTableName(clazz);
 
         StringBuffer sb = new StringBuffer();
-        sb.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append("(");
+        sb.append("CREATE TABLE IF NOT EXISTS '").append(tableName).append("'(");
         // 让这个字段自动累加，而不影响其他主键
         sb.append("_id integer primary key autoincrement,");
 
@@ -155,7 +155,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
             Unique unique = fields.get(i).getAnnotation(Unique.class);
             NotNull notNull = fields.get(i).getAnnotation(NotNull.class);
 
-            sb.append(" " + columnName);
+            sb.append(" '" + columnName).append("'");
             Class fieldClazz = fields.get(i).getType();
             if (fieldClazz.equals(int.class) || fieldClazz.equals(long.class) ||
                     fieldClazz.equals(Integer.class) || fieldClazz.equals(Long.class)) {
@@ -239,7 +239,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     			if (column != null && !TextUtils.isEmpty(column.column())) {
     				columnName = column.column();
     			}
-    			sb.append(columnName).append("=?");
+    			sb.append("'").append(columnName).append("'").append("=?");
     			whereClause = sb.toString();
     			try {
 					whereArgs[index] = field.get(t).toString();

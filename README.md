@@ -25,13 +25,30 @@ void dbManager.deleteById(id);
     * 增加查询总数量方法 public Long count(Class<?> clazz, String whereClause, String[] whereArgs)
     * 增加查询表是否存在的方法 public boolean checkTableIsExsist(Class<?> clazz)
     * -1 变为可用值，之前的版本设计时字段考虑用 int,没有空的情况，就用-1代替空，现在更正，-1就是-1，不能代表空，需要空请定义 Integer
+
+jitpack 版本
+@version 1.0.0  同 jcenter 1.0.7
+@version 1.0.1  增加版本号
+@version 1.0.3  异常 try catch 改到事务开始结束中间，否则 try 到 异常却没有结束 事务，会导致不可思议的问题
+
 ```
 ### 引用方式  
 
-``` 
+```
+
+allprojects {
+    repositories {
+        ...
+        maven{ url "https://jitpack.io" }
+    }
+}
+
 dependencies {
     ...  
-     compile 'com.aiitec.aiisqlite:aiisqlte:1.0.3'
+     //compile 'com.aiitec.aiisqlite:aiisqlte:1.0.3'
+     // jcenter 转到 jitpack.io
+
+     implementation 'com.github.anthonyY:AiiSQLite:1.0.3'
 }
 ```
 

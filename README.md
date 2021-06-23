@@ -29,7 +29,7 @@ void dbManager.deleteById(id);
 jitpack 版本
 @version 1.0.0  同 jcenter 1.0.7
 @version 1.0.1  增加版本号
-@version 1.0.3  异常 try catch 改到事务开始结束中间，否则 try 到 异常却没有结束 事务，会导致不可思议的问题
+@version 1.0.2  异常 try catch 改到事务开始结束中间，否则 try 到 异常却没有结束 事务，会导致不可思议的问题
 
 ```
 ### 引用方式  

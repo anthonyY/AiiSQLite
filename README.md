@@ -48,7 +48,7 @@ dependencies {
      //compile 'com.aiitec.aiisqlite:aiisqlte:1.0.3'
      // jcenter 转到 jitpack.io
 
-     implementation 'com.github.anthonyY:AiiSQLite:1.0.3'
+     implementation 'com.github.anthonyY:AiiSQLite:1.0.2'
 }
 ```
 

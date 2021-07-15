@@ -73,7 +73,7 @@ jitpack 版本
 
 ```
 ### 引用方式  
-
+[![](https://jitpack.io/v/anthonyY/AiiSQLite.svg)](https://jitpack.io/#anthonyY/AiiSQLite)
 ```
 
 allprojects {

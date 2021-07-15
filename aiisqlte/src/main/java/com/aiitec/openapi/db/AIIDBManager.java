@@ -43,7 +43,8 @@ import java.util.function.Function;
  */
 public class AIIDBManager {
 
-    private final String TAG = "TAG_AII_SQLITE";
+    public static final String TAG = "TAG_AII_SQLITE";
+    public static boolean showLog = true;
 
     private AIIDbOpenHelper dbHelper;
 
@@ -144,8 +145,6 @@ public class AIIDBManager {
      *
      * @param <T>
      * @return
-     * @throws IllegalAccessException
-     * @throws InstantiationException
      */
     public <T> List<T> findAll(Class<T> clazz) {
         return findAll(clazz, null, null);
@@ -196,22 +195,20 @@ public class AIIDBManager {
      *
      * @param clazz 类
      * @return 返回对象
-     * @throws InstantiationException
-     * @throws IllegalAccessException
      */
-    public <T> T findFirst(Class<T> clazz) throws InstantiationException, IllegalAccessException {
+    public <T> T findFirst(Class<T> clazz) {
         return findFirst(clazz, null, null, null);
     }
 
-    public <T> T findFirst(Class<T> clazz, String selection, String[] selectionArgs, String orderBy) throws InstantiationException, IllegalAccessException {
+    public <T> T findFirst(Class<T> clazz, String selection, String[] selectionArgs, String orderBy)  {
         return findFirst(clazz, null, selection, selectionArgs, null, null, orderBy);
     }
 
-    public <T> T findFirst(Class<T> clazz, String selection, String[] selectionArgs) throws InstantiationException, IllegalAccessException {
+    public <T> T findFirst(Class<T> clazz, String selection, String[] selectionArgs) {
         return findFirst(clazz, null, selection, selectionArgs, null, null, null);
     }
 
-    public <T> T findObjectFromId(Class<T> clazz, long id) throws InstantiationException, IllegalAccessException {
+    public <T> T findObjectFromId(Class<T> clazz, long id) {
         return findFirst(clazz, null, "id=?", new String[]{id + ""}, null, null, null);
     }
 
@@ -226,8 +223,6 @@ public class AIIDBManager {
      * @param having        这个值我也不太清楚，查谷歌
      * @param orderBy       排序
      * @return 返回一个对象，有可能是null
-     * @throws InstantiationException
-     * @throws IllegalAccessException
      */
     public <T> T findFirst(Class<T> clazz, String[] columns, String selection, String[] selectionArgs, String groupBy, String having, String orderBy) {
         SQLiteDatabase db = dbHelper.openDatabase();
@@ -315,6 +310,11 @@ public class AIIDBManager {
             } else if (field.getType().equals(Date.class)) {
                 long longValue = cursor.getLong(cursor.getColumnIndex(fieldName));
                 Date date = new Date(longValue);
+                field.set(t, date);
+
+            } else if (field.getType().equals(java.sql.Date.class)) {
+                long longValue = cursor.getLong(cursor.getColumnIndex(fieldName));
+                java.sql.Date date = new java.sql.Date(longValue);
                 field.set(t, date);
 
             } else {

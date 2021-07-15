@@ -1,20 +1,43 @@
-package com.aiitec.aiisqlite;
+package com.aiitec.aiisqlite.entity;
 
+import com.aiitec.openapi.db.annotation.Column;
+import com.aiitec.openapi.db.annotation.Index;
+import com.aiitec.openapi.db.annotation.Table;
 import com.aiitec.openapi.db.annotation.Unique;
 
+@Table("user_info")
 public class UserInfo {
 
     private String faceplus;
     private Integer organizationId;
     private String types;
+    @Column("sn")
     private String serialNumber;
     private String passTime;
-    private String name;
+
     private String featureImg;
+    @Index("department")
     private String department;
     @Unique
+    // value 索引名称， orderBy 排序（可忽略）
+    @Index(value = "userId", orderBy = "DESC")
     private Integer userId;
+
+    // 这个索引  username 包含两个字段 (name,username)
+    @Index("username")
+    private String name;
+    @Index("username")
     private String username;
+    @Index("age")
+    private int age;
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
 
     public String getFaceplus() {
         return faceplus;

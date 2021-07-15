@@ -1,4 +1,4 @@
-package com.aiitec.aiisqlite;
+package com.aiitec.aiisqlite.entity;
 
 
 import com.aiitec.openapi.db.utils.AiiJson;

@@ -1,6 +1,7 @@
 # AiiSQlite 库  
 ### 使用说明  
-本库是作为Android 数据库存储的一个库，使用按对象存储读取的方式，节省写数据库的代码，并且增加字段能自动识别，是一个很好用的数据库框架。  
+本库是作为Android 数据库存储的一个库，使用按对象存储读取的方式，节省写数据库的代码，并且增加字段能自动识别，是一个很好用的数据库框架。
+当bean 对象增加了字段后，执行增删改查操作时会自动判断并增加字段到数据库，但是只能增加，不能减少，对象减了字段，数据库中是仍然存在的。
 API如下：
 ```
 AIIDBManager dbManager = new AIIDBManager(this);
@@ -18,6 +19,44 @@ void dbManager.delete(对象T.class, "name=?",new String[]{"张三"});
 void dbManager.deleteAll(对象T.class);
 void dbManager.deleteById(id);  
 
+```
+
+注解使用如下
+* 表名 @Table value为指定的字段名
+```
+    @Table("user_info")
+    public class UserInfo {
+        ...
+    }
+```
+
+* 唯一值 @Unique
+```
+    @Unique
+    private Integer userId;
+```
+
+* 字段名  @Column value为指定的字段名
+```
+    @Column("serial_number")
+    private String serialNumber;
+```
+
+* 索引 @Index value为索引名， orderby 为排序方式， 可以是组合索引，也就是多个字段使用相同的索引名
+```
+    @Index(value = "userId", orderBy = "DESC")
+    private Integer userId;
+
+    // 这个索引  username 包含两个字段 (name,username)
+    @Index("username")
+    private String name;
+
+    @Index("username")
+    private String username;
+```
+
+版本信息
+```
 @version 1.0.2 修复多线程访问出现database is closed 的异常
 @version 1.0.3 删除JsonInterface
 @version 1.0.7
@@ -30,6 +69,7 @@ jitpack 版本
 @version 1.0.0  同 jcenter 1.0.7
 @version 1.0.1  增加版本号
 @version 1.0.2  异常 try catch 改到事务开始结束中间，否则 try 到 异常却没有结束 事务，会导致不可思议的问题
+@version 1.0.3  增加索引
 
 ```
 ### 引用方式  
@@ -48,12 +88,12 @@ dependencies {
      //compile 'com.aiitec.aiisqlite:aiisqlte:1.0.3'
      // jcenter 转到 jitpack.io
 
-     implementation 'com.github.anthonyY:AiiSQLite:1.0.2'
+     implementation 'com.github.anthonyY:AiiSQLite:1.0.4'
 }
 ```
 
 ```
-Copyright 2017 AiiSQLite
+   Copyright 2017 Anthony
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

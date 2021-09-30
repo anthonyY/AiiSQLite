@@ -166,23 +166,32 @@ public class AIIDBManager {
             boolean isExit = DbUtils.checkTableState(db, clazz);
             if (isExit) {
                 DbUtils.updateTable(db, clazz);
-                Cursor cursor = db.query(DbUtils.getTableName(clazz), columns, selection, selectionArgs, groupBy, having, orderBy);
+                Cursor cursor = null;
+                try {
+                    cursor = db.query(DbUtils.getTableName(clazz), columns, selection, selectionArgs, groupBy, having, orderBy);
 
-                while (cursor.moveToNext()) {
-                    try {
-                        T t = clazz.newInstance();
-                        List<Field> allFields = CombinationUtil.getAllFields(clazz);
-                        for (Field field : allFields) {
-                            setValueToObject(field, cursor, t);
+                    while (cursor.moveToNext()) {
+                        try {
+                            T t = clazz.newInstance();
+                            List<Field> allFields = CombinationUtil.getAllFields(clazz);
+                            for (Field field : allFields) {
+                                setValueToObject(field, cursor, t);
+                            }
+                            list.add(t);
+                        } catch (InstantiationException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
                         }
-                        list.add(t);
-                    } catch (InstantiationException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                    }
+                } catch (Exception e){
+                    e.printStackTrace();
+                } finally {
+                    if(null != cursor) {
+                        cursor.close();
                     }
                 }
-                cursor.close();
+
             }
         }
         //每次执行完成必须关闭数据库
@@ -231,21 +240,31 @@ public class AIIDBManager {
             boolean isExit = DbUtils.checkTableState(db, clazz);
             if (isExit) {
                 DbUtils.updateTable(db, clazz);
-                Cursor cursor = db.query(DbUtils.getTableName(clazz), columns, selection, selectionArgs, groupBy, having, orderBy);
-                if (cursor.moveToFirst()) {
-                    try {
-                        t = clazz.newInstance();
-                        List<Field> allFields = CombinationUtil.getAllFields(clazz);
-                        for (Field field : allFields) {
-                            setValueToObject(field, cursor, t);
+                Cursor cursor = null;
+                try {
+                    cursor = db.query(DbUtils.getTableName(clazz), columns, selection, selectionArgs, groupBy, having, orderBy);
+                    if (cursor.moveToFirst()) {
+                        try {
+                            t = clazz.newInstance();
+                            List<Field> allFields = CombinationUtil.getAllFields(clazz);
+                            for (Field field : allFields) {
+                                setValueToObject(field, cursor, t);
+                            }
+                        } catch (InstantiationException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
                         }
-                    } catch (InstantiationException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                    }
+                } catch (Exception e){
+                    e.printStackTrace();
+                } finally {
+                    if(null != cursor){
+                        cursor.close();
+                        cursor = null;
                     }
                 }
-                cursor.close();
+
             }
         }
         //每次执行完成必须关闭数据库
@@ -384,6 +403,7 @@ public class AIIDBManager {
         if (whereClause == null) whereClause = "";
         SQLiteDatabase db = dbHelper.openDatabase();
         if (db.isOpen()) {
+            Cursor cursor = null;
             try {
                 boolean isExit = DbUtils.checkTableState(db, clazz);
                 if (isExit) {
@@ -393,14 +413,19 @@ public class AIIDBManager {
                     if (whereArgs != null && whereArgs.length > 0) {
                         sql = sql + " where " + whereClause;
                     }
-                    Cursor cursor = db.rawQuery(sql, whereArgs);
+                    cursor = db.rawQuery(sql, whereArgs);
                     if (cursor.moveToFirst()) {
                         count = cursor.getLong(cursor.getColumnIndex("count"));
                     }
-                    cursor.close();
+
                 }
             } catch (Exception e){
                 e.printStackTrace();
+            } finally {
+                if(null != cursor){
+                    cursor.close();
+                    cursor = null;
+                }
             }
         }
         //每次执行完成必须关闭数据库
@@ -448,14 +473,20 @@ public class AIIDBManager {
     @SuppressLint("NewApi")
     synchronized public void rawQuery(String sql, String[] whereArgs, Function<Cursor, Void> fun) {
         SQLiteDatabase db = dbHelper.openDatabase();
+        Cursor cursor = null;
         if (db.isOpen()) {
             try {
-                Cursor cursor = db.rawQuery(sql, whereArgs);
+                cursor = db.rawQuery(sql, whereArgs);
                 cursor.moveToFirst();
                 fun.apply(cursor);
-                cursor.close();
+
             } catch (Exception e){
                 e.printStackTrace();
+            } finally {
+                if(null != cursor) {
+                    cursor.close();
+                    cursor = null;
+                }
             }
         }
         db.close();

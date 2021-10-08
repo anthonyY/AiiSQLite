@@ -94,16 +94,26 @@ public class DbUtils {
      */
     public static boolean checkTableState(SQLiteDatabase db, String tableName) {
         boolean isExit = false;
-        Cursor cursor = db.rawQuery(
-                "SELECT COUNT(*) FROM sqlite_master where type='table' and name='"
-                        + tableName + "'", null);
-        if (cursor.moveToNext()) {
-            int count = cursor.getInt(0);
-            if (count > 0) {// 表示该表存在
-                isExit = true;
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(
+                    "SELECT COUNT(*) FROM sqlite_master where type='table' and name='"
+                            + tableName + "'", null);
+            if (cursor.moveToNext()) {
+                int count = cursor.getInt(0);
+                if (count > 0) {// 表示该表存在
+                    isExit = true;
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            if(null != cursor) {
+                cursor.close();
+                cursor = null;
             }
         }
-        cursor.close();
+
         return isExit;
     }
 
@@ -272,10 +282,21 @@ public class DbUtils {
      */
     private static String findExistsIndex(SQLiteDatabase db, String tableName, String indexName) {
         String checkIndexExistSql = "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name = ? AND name = ?";
-        Cursor cursor = db.rawQuery(checkIndexExistSql, new String[]{tableName, indexName});
-        if (cursor.moveToFirst()) {
-            return cursor.getString(cursor.getColumnIndexOrThrow("sql"));
+        Cursor cursor= null;
+        try {
+            cursor = db.rawQuery(checkIndexExistSql, new String[]{tableName, indexName});
+            if (cursor.moveToFirst()) {
+                return cursor.getString(cursor.getColumnIndexOrThrow("sql"));
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            if(null != cursor){
+                cursor.close();
+                cursor = null;
+            }
         }
+
         return null;
     }
 
@@ -304,8 +325,9 @@ public class DbUtils {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (null != cursor && !cursor.isClosed()) {
+            if (null != cursor) {
                 cursor.close();
+                cursor = null;
             }
         }
 

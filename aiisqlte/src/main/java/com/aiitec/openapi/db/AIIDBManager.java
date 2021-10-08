@@ -163,9 +163,9 @@ public class AIIDBManager {
         List<T> list = new ArrayList<T>();
         if (db.isOpen()) {
 
-            boolean isExit = DbUtils.checkTableState(db, clazz);
-            if (isExit) {
-                DbUtils.updateTable(db, clazz);
+//            boolean isExit = DbUtils.checkTableState(db, clazz);
+//            if (isExit) {
+//                DbUtils.updateTable(db, clazz);
                 Cursor cursor = null;
                 try {
                     cursor = db.query(DbUtils.getTableName(clazz), columns, selection, selectionArgs, groupBy, having, orderBy);
@@ -189,10 +189,11 @@ public class AIIDBManager {
                 } finally {
                     if(null != cursor) {
                         cursor.close();
+                        cursor = null;
                     }
                 }
 
-            }
+//            }
         }
         //每次执行完成必须关闭数据库
         closeDatabase();
@@ -237,9 +238,9 @@ public class AIIDBManager {
         SQLiteDatabase db = dbHelper.openDatabase();
         T t = null;
         if (db.isOpen()) {
-            boolean isExit = DbUtils.checkTableState(db, clazz);
-            if (isExit) {
-                DbUtils.updateTable(db, clazz);
+//            boolean isExit = DbUtils.checkTableState(db, clazz);
+//            if (isExit) {
+//                DbUtils.updateTable(db, clazz);
                 Cursor cursor = null;
                 try {
                     cursor = db.query(DbUtils.getTableName(clazz), columns, selection, selectionArgs, groupBy, having, orderBy);
@@ -265,7 +266,7 @@ public class AIIDBManager {
                     }
                 }
 
-            }
+//            }
         }
         //每次执行完成必须关闭数据库
         closeDatabase();
@@ -405,8 +406,8 @@ public class AIIDBManager {
         if (db.isOpen()) {
             Cursor cursor = null;
             try {
-                boolean isExit = DbUtils.checkTableState(db, clazz);
-                if (isExit) {
+//                boolean isExit = DbUtils.checkTableState(db, clazz);
+//                if (isExit) {
 
                     String tableName = DbUtils.getTableName(clazz);
                     String sql = "select IFNULL(count(*),0) as count from " + tableName;
@@ -418,7 +419,7 @@ public class AIIDBManager {
                         count = cursor.getLong(cursor.getColumnIndex("count"));
                     }
 
-                }
+//                }
             } catch (Exception e){
                 e.printStackTrace();
             } finally {

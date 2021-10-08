@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Anthony
@@ -35,7 +34,7 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
     /**
      * 解决多线程并发
      */
-    private AtomicInteger mOpenCounter = new AtomicInteger();
+//    private AtomicInteger mOpenCounter = new AtomicInteger();
     private static HashMap<String, AIIDbOpenHelper> instances = new HashMap<>();
     private Context context;
     private SQLiteDatabase mDatabase;
@@ -92,15 +91,18 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
      *
      * @return
      */
-    public synchronized SQLiteDatabase openDatabase() {
+     synchronized SQLiteDatabase openDatabase() {
 
-        int index = mOpenCounter.incrementAndGet();
-        if (index == 1) {
-            // Opening new database
-            mDatabase = getWritableDatabase();
-        } else if (mDatabase == null) {
-            mDatabase = getWritableDatabase();
+//        int index = mOpenCounter.incrementAndGet();
+        if(mDatabase == null || !mDatabase.isOpen()){
+//            if (index == 1) {
+//                // Opening new database
+//                mDatabase = getWritableDatabase();
+//            } else if (mDatabase == null) {
+                mDatabase = getWritableDatabase();
+//            }
         }
+
         return mDatabase;
     }
 
@@ -108,18 +110,18 @@ public class AIIDbOpenHelper extends SQLiteOpenHelper {
      * 多线程下关闭
      */
     public synchronized void closeDatabase() {
-        int index = mOpenCounter.decrementAndGet();
-        if (index == 0) {
-            if (mDatabase == null) {
-                return;
-            }
-            try {
-                mDatabase.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            mDatabase = null;
-        }
+//        int index = mOpenCounter.decrementAndGet();
+//        if (index == 0) {
+//            if (mDatabase == null) {
+//                return;
+//            }
+//            try {
+//                mDatabase.close();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//            mDatabase = null;
+//        }
     }
 
     /**
